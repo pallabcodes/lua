@@ -57,3 +57,156 @@ print(math.min(10, 1, 50, 12))  -- Finds the minimum of the given numbers
 print(math.max(10, 1, 50, 12))  -- Finds the maximum of the given numbers
 print(math.sin(20))  -- Sine of 20 (in radians)
 print(math.cos(20))  -- Cosine of 20 (in radians)
+
+
+--[[
+Advanced Data Types, Scope, and Product/Game Patterns
+]]
+
+-- Table (array)
+local numbers = {1, 2, 3, 4, 5}
+[...existing code...]
+
+local Status = { ACTIVE = 1, INACTIVE = 0, PENDING = 2 }
+print('Status.ACTIVE:', Status.ACTIVE)
+-- Enum with metatable (advanced)
+local function createEnum(tbl)
+    return setmetatable(tbl, {
+        __index = function(_, k)
+            error('Invalid enum key: ' .. tostring(k))
+        end
+    })
+end
+local Role = createEnum({ ADMIN = 1, USER = 2, GUEST = 3 })
+print('Role.ADMIN:', Role.ADMIN)
+-- print(Role.UNKNOWN) -- will error
+
+-- Deep copy pattern
+local function deepCopy(obj)
+    if type(obj) ~= 'table' then return obj end
+    local copy = {}
+    for k, v in pairs(obj) do copy[k] = deepCopy(v) end
+    return copy
+end
+local orig = { a = 1, b = { c = 2 } }
+local cp = deepCopy(orig)
+cp.b.c = 3
+print('Original:', orig.b.c, 'Copy:', cp.b.c)
+
+local config = {
+    env = os.getenv('ENV') or 'dev',
+    debug = true,
+    api_url = 'http://localhost:8000'
+}
+print('Config env:', config.env)
+-- Environment config loader (enterprise scenario)
+local function loadConfig(env)
+    local configs = {
+        dev = { db = 'localhost', debug = true },
+        prod = { db = 'prod-db', debug = false }
+    }
+    return configs[env] or configs['dev']
+end
+local currentConfig = loadConfig(config.env)
+print('Loaded config:', currentConfig.db, currentConfig.debug)
+for i, v in ipairs(numbers) do
+    print("Array index:", i, "value:", v)
+end
+
+-- Table (dictionary)
+local user = { name = "Alice", age = 30, active = true }
+for k, v in pairs(user) do
+    print("User property:", k, "value:", v)
+end
+
+-- Table manipulation
+user.level = 5
+user["score"] = 100
+print("User level:", user.level, "score:", user.score)
+
+-- Type checking
+print("Type of user:", type(user))
+print("Type of numbers:", type(numbers))
+print("Type of nil:", type(nil))
+
+-- Boolean logic
+local isActive = true
+if isActive then
+    print("User is active")
+else
+    print("User is not active")
+end
+
+--[ [
+More Advanced Data Types, Scope, and Product Patterns
+]]
+
+-- Enum pattern (using tables)
+local Status = { ACTIVE = 1, INACTIVE = 0, PENDING = 2 }
+local userStatus = Status.ACTIVE
+print("User status:", userStatus == Status.ACTIVE and "Active" or "Not Active")
+
+-- Deep copy utility
+local function deepCopy(obj)
+    if type(obj) ~= "table" then return obj end
+    local copy = {}
+    for k, v in pairs(obj) do
+        copy[deepCopy(k)] = deepCopy(v)
+    end
+    return copy
+end
+local original = { a = 1, b = { c = 2 } }
+local copied = deepCopy(original)
+copied.b.c = 3
+print("Original:", original.b.c, "Copied:", copied.b.c)
+
+-- Environment-specific configuration
+local ENV = os.getenv("ENV") or "development"
+local config = {
+    development = { db = "localhost", debug = true },
+    production = { db = "prod-db", debug = false }
+}
+print("Current config:", config[ENV].db, config[ENV].debug)
+
+local featureFlags = {
+    newUI = true,
+    betaFeature = false,
+    logging = true
+}
+if featureFlags.newUI then
+    print("New UI enabled!")
+end
+-- Feature flag toggling (product scenario)
+local function toggleFlag(flags, name)
+    flags[name] = not flags[name]
+    print('Feature', name, 'is now', flags[name])
+end
+toggleFlag(featureFlags, 'betaFeature')
+
+local function logAction(user, action)
+    print("[LOG]", os.date("%Y-%m-%d %H:%M:%S"), user, action)
+end
+logAction("Alice", "login")
+logAction("Bob", "purchase")
+-- Product scenario: config validation
+local function validateConfig(cfg)
+    if not cfg.db then return false, 'Missing db' end
+    if type(cfg.debug) ~= 'boolean' then return false, 'Debug must be boolean' end
+    return true
+end
+local ok, err = validateConfig(currentConfig)
+print('Config valid:', ok, err or '')
+
+-- Product scenario: batch processing users
+local users = {
+    { name = "Alice", active = true },
+    { name = "Bob", active = false },
+    { name = "Carol", active = true }
+}
+for _, u in ipairs(users) do
+    if u.active then
+        print(u.name .. " is active")
+    else
+        print(u.name .. " is not active")
+    end
+end
